@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="client.css" type="text/css" rel="stylesheet">
+    <script src="client.js"></script>
+    <script src="serverstub.js"></script>
+
+
+    <script type="text/view" id="welcomeview">
+
+        <div id="centerbox">
+
+    <div id="logo">
+        <img src="wimage.png" alt="Welcomelogo">
+    </div>
+
+
+    <div class="login">
+        <form action="#" id="login" >
+            <div class="inner">
+                <div class="row"><label for="email1" >Email</label><input type="email" id="email1" name="email1"
+                                                                                  required></div>
+                <div class="row"><label for="password1" >Password</label><input type="password" id="password1"
+                                                                                            name="password1" required>
+                </div>
+            </div>
+            <div class="inner">
+                <button type="submit" onclick = "return loggingin(event)">Login</button>
+            </div>
+        </form>
+        <p id = "responselog"></p>
+    </div>
+
+
+    <div class="signup">
+        <form method="POST" id="saveform" >
+            <div class="inner" id=userinformationform>
+                <div class="signuptext"><b>Sign up here</b></div>
+                <div class="row"><label for="firstname" >First name</label><input type="text" id="firstname"
+                                                                                            pattern="[A-Za-z]+"  name="firstname"/></div>
+                <div class="row"><label for="familyname" >Family name</label><input type="text" id="familyname"
+                                                                                            pattern="[A-Za-z]+"  name="familyname"/>
+                </div>
+                <div class="row"> Gender
+                    <select class="w3-select" name="option" id="w3-select">
+
+                        <option value="" disabled selected>Choose</option>
+                        <option value="1">Male</option>
+                        <option value="2">Female</option>
+                        <option value="3">None of the above</option>
+                    </select>
+                </div>
+                <div class="row"><label for="city">City</label><input type="text" id="city" name="city" pattern="[A-Za-z]+"></div>
+                <div class="row"><label for="country">Country</label><input type="text" id="country"
+                                                                                         name="country" pattern="[A-Za-z]+"></div>
+                <div class="row"><label for="email">Email</label><input type="email" id="email"
+                                                                                   name="email" pattern="\w+.@\w+\.\w+"/></div>
+                <div class="row"><label for="password">Password</label><input type="password" id="password"
+                                                                                            name="password"/></div>
+                <div class="row"><label for="repeat">Repeat Password</label><input type="password" id="repeat"
+                                                                                               name="repeat"/></div>
+            </div>
+            <div class="inner">
+                <button type="submit" value="save" name="save" id="savesave" onclick= "checknewuser(event)" >Save </button>
+            </div>
+
+        </form>
+        <p id = "response"></p>
+    </div>
+</div>
+
+
+
+
+    </script>
+
+    <script type="text/view" id="profileview">
+        <div></div>
+         <div class="threetabs">
+            <button class="tablink" id="homebutton" onclick="tabulardata('Home')" style="background-color: #6f8cff" >Home</button>
+            <button class="tablink" id="browsebutton" onclick="tabulardata('Browse')">Browse</button>
+            <button class="tablink" id="accountbutton" onclick="tabulardata('Account')">Account</button>
+
+        </div>
+
+
+        <div id="Home" class="tab" >
+            <h2>Home</h2>
+           <div id = "home-personalinformation">
+               <div id ="home-photo">Photo</div>
+               <div class="info">Name: </div> <div id="home-info-firstname" class="info-userinfo">
+              </div>
+              <br>
+               <div class="info">Family name:</div> <div id="home-info-familyname" class="info-userinfo">
+              </div>
+              <br>
+               <div class="info">Gender:</div> <div id="home-info-gender" class="info-userinfo">
+              </div>
+              <br>
+               <div class="info">City:</div> <div id="home-info-city" class="info-userinfo">
+              </div>
+              <br>
+               <div class="info">Country:</div> <div id="home-info-country" class="info-userinfo">
+              </div>
+              <br>
+               <div class="info">Email:</div> <div id="home-info-email" class="info-userinfo">
+              </div>
+           </div>
+            <div id = "home-postarea">
+                <div id="home-posttext"> </div>
+                <textarea id="home-inputpost" required></textarea>
+                                <button type="submit" value="post" id="postonwall" onclick="postmessage('home')">Post</button>
+            </div>
+            <div id="home-postwall">
+                <b id="home-header">Wall with posts</b>
+                <div id="home-apost"></div>
+            </div>
+            <button class="button" id="home-reload" onclick="updateWall('home')">Reload page</button>
+        </div>
+
+        <div id="Browse" class="tab" style="display:none" >
+            <h2>Browse</h2>
+            <div id="searchbar">
+                <input type="text" id="search" />
+                <button type="submit" class="button" id="searchbutton" onclick="searchforuser()">Search</button>
+            </div>
+            <div id = "browse-personalinformation" style="display:none" >
+                <div id ="browse-photo">Photo</div>
+                <div class="info">Name: </div> <div id="browse-info-firstname" class="info-userinfo">
+                </div>
+                <br>
+                <div class="info">Family name:</div> <div id="browse-info-familyname" class="info-userinfo">
+                </div>
+                <br>
+                <div class="info">Gender:</div> <div id="browse-info-gender" class="info-userinfo">
+                </div>
+                <br>
+                <div class="info">City:</div> <div id="browse-info-city" class="info-userinfo">
+                </div>
+                <br>
+                <div class="info">Country:</div> <div id="browse-info-country" class="info-userinfo">
+                </div>
+                <br>
+                <div class="info">Email:</div> <div id="browse-info-email" class="info-userinfo">
+                </div>
+            </div>
+            <div id = "browse-postarea" style="display:none" >
+                <div id="-browse-posttext"> </div>
+                <textarea id ="browse-inputpost" required></textarea>
+                                <button type="submit" value="post" id="browse-postonwall" onclick="postmessage('browse')">Post</button>
+            </div>
+            <div id="browse-postwall" style="display:none" >
+                <b id="browse-header">Wall with posts</b>
+                <div id="browse-apost"></div>
+            </div>
+            <button class="button" id="browse-reload" onclick="updateWall('browse')" style="display:none">Reload page</button>
+            <p id="browse-user-message"></p>
+        </div>
+        <div id="Account" class="tab" style="display:none">
+            <h2>Account</h2>
+            <form method="POST" onsubmit= "checkchangedpassword(event)">
+            <div id ="changepassword" >
+                <h1> Change password</h1>
+                <div class="inner">
+                    <div class ="row"><label for="oldpassword" >Old Password</label><input type="password" id="oldpassword" name="oldpassword"></div>
+                    <div class ="row"><label for="newpassword" >New Password</label><input type="password" id="newpassword" name="newpassword"></div>
+                    <div class ="row"><label for="repeatnewpassword" >Repeat New Password</label><input type="password" id="repeatnewpassword" name="repeatnewpassword"></div>
+                    <button type="submit" value="save" name="save" id="savenewpassword" onclick = "changepassword(event)">Save new password</button>
+                </div>
+                <p id="response1"></p>
+            </div>
+            </form>
+        </div>
+ <button  id="signout" onclick="signOut(event)">Sign out</button>
+
+
+    </script>
+
+    <title> Twidder </title>
+</head>
+<body>
+
+</body>
+</html>
