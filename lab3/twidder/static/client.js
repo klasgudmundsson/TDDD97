@@ -79,15 +79,6 @@ function checknewuser(event) {
     formdata += "country=" + country;
 
     var re = /\w+\@\w+\.\w+/;
-    var object = {
-        email: document.getElementById('email').value,
-        password: document.getElementById('password').value,
-        firstname: document.getElementById('firstname').value,
-        familyname: document.getElementById('familyname').value,
-        gender: list[index].text,
-        city: document.getElementById('city').value,
-        country: document.getElementById('country').value
-    };
 
     if (name.length > 0 && fname.length > 0 && city.length > 0 && country.length > 0 && email.length > 0) {
         if (pass == rep) {
@@ -95,10 +86,8 @@ function checknewuser(event) {
                 if (pass.length > 2) {
 
                     var xhttp = new XMLHttpRequest();
-                    alert("hej");
                     xhttp.onreadystatechange = function() {
-                        alert("func");
-                        if (this.readyState == 4 && this.status == 200) {
+                        if (xhttp.readyState == 4 && xhttp.status == 200) {
                             var result = JSON.parse(xhttp.responseText);
                             if(result.success) {
                                 alert("result");
@@ -113,14 +102,13 @@ function checknewuser(event) {
                                 document.getElementById("response").innerHTML = result.message;
                             }
                             else {
-                                alert("funkar ej");
                                 document.getElementById("response").innerHTML = result.message;
                             }
                         }
                     };
                     xhttp.open("POST","/adduser", true);
                     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-                    xhttp.send(formadata);
+                    xhttp.send(formdata);
 
                     /*result = serverstub.signUp(object);
                     if (result.success) {
