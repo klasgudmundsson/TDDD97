@@ -41,14 +41,15 @@ def signin():
             token = random.randrange(0, 10000, 1)
             if database_helper.add_loggedin_user(email,token):
 
-                return json.dumps(token)
-                #return jsonify({"success": True, "message": "signin"})
+                # return json.dumps(token)
+                return jsonify({"success": True, "message": token})
             else:
                 return jsonify({"success": False, "message": "not able to add user"})
         else:
             return jsonify({"success": False, "message": "wrong password"})
     else:
         return jsonify({"success": False, "message": "There is no such user"})
+
 
 
 @app.route('/getuser/<email>', methods=['GET', 'POST'])
@@ -117,7 +118,7 @@ def get_user_data_by_token(token):
     logged_in = database_helper.loggedin_user(token)
     response = database_helper.get_userdata_by_token(token)
     if logged_in:
-        return json.dumps(response)
+        return jsonify({"success": True, "message": response})
     else:
         return jsonify({"success": False, "message": "You are not signed in."})
 
@@ -129,24 +130,23 @@ def get_user_data_by_email(token, email):
         user_exists = database_helper.user_exists(email)
         if user_exists:
             response = database_helper.get_userdata_by_email(email)
-            return json.dumps(response)
+            return jsonify({"success": False, "message": response})
         else:
             return jsonify({"success": False, "message": "No such user exists."})
     else:
         return jsonify({"success": False, "message": "You are not signed in."})
 
-@app.route('/postmessage', methods=['POST'])
-def post_message():
-    token = request.form['token']
-    message = request.form['message']
-    email = request.form['email']
-    # sender_email = database_helper.get_useremail(token)
+@app.route('/postmessage/<token>/<email>/<message>', methods=['GET'])
+def post_message(token, email, message):
+    #token = request.form['token']
+    #message = request.form['message']
+    #email = request.form['email']
+    #sender_email = database_helper.get_useremail(token)
     logged_in = database_helper.loggedin_user(token)
     if logged_in:
         user_exists = database_helper.user_exists(email)
         if user_exists:
             database_helper.post_message(token, message, email)
-
             return jsonify({"success": True, "message": "Message posted"})
         else:
             return jsonify({"success": False, "message": "There is no such user."})
