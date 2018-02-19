@@ -1,6 +1,5 @@
 var token;
 var userEmail;
-var
 
 displayView = function(page){
     document.body.innerHTML = page;
@@ -16,23 +15,6 @@ window.onload = function() {
     //window.alert("Hello TDDD97!");
 };
 
-/*xhttp.onreadystatechange = function() {
-
-  // Check if fetch request is done
-  if (xhttp.readyState == 4 && xhttp.status == 200) {
-    alert("hejhej");
-    //var jsonData = JSON.parse(xhr.responseText);
-  }
-};
-*/
-/*
-var getJSON = function(url, method) {
-    var xhhtp = new XMLHttpRequest();
-    xhr.open(method, url, true);
-    xhr.responseType = 'json';
-
-}
-*/
 function requestFunction(method, url, params) {
     alert("den gar in i requestfunc");
     var xhttp = new XMLHttpRequest();
@@ -90,7 +72,6 @@ function checknewuser(event) {
                         if (xhttp.readyState == 4 && xhttp.status == 200) {
                             var result = JSON.parse(xhttp.responseText);
                             if(result.success) {
-                                alert("result");
                                 document.getElementById("firstname").value= '';
                                 document.getElementById("familyname").value= '';
                                 document.getElementById("w3-select").value= '"" disabled selected';
@@ -110,18 +91,6 @@ function checknewuser(event) {
                     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
                     xhttp.send(formdata);
 
-                    /*result = serverstub.signUp(object);
-                    if (result.success) {
-                        document.getElementById("firstname").value= '';
-                        document.getElementById("familyname").value= '';
-                        document.getElementById("w3-select").value= '"" disabled selected';
-                        document.getElementById("city").value= '';
-                        document.getElementById("country").value= '';
-                        document.getElementById("email").value= '';
-                        document.getElementById("password").value= '';
-                        document.getElementById("repeat").value= '';
-                    }
-                    document.getElementById("response").innerHTML = result.message;*/
                 }
                 else {
                     document.getElementById("response").innerHTML = "The password is to short.";
@@ -141,20 +110,34 @@ function checknewuser(event) {
 
 function loggingin(event) {
     event.preventDefault();
-
     var user = document.getElementById('email1').value;
     var pass = document.getElementById('password1').value;
-    result = serverstub.signIn(user, pass);
-    document.getElementById("responselog").innerHTML = result.message;
-    if (result.success) {
-        token = result.data;
-        userEmail = user;
-        var view2 = document.getElementById("profileview").innerHTML;
-        displayView(view2);
-        userInfo(token, user, "home");
-        updateWall("home");
+    var formdata = "email=" + user + "&";
+    formdata += "password=" + pass + "&";
+
+    userEmail = user;
+
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState == 4 && xhttp.status == 200) {
+            var result = JSON.parse(xhttp.responseText);
+            if(result.success) {
+                token = result.message;
+                var view2 = document.getElementById("profileview").innerHTML;
+                displayView(view2);
+                userInfo(token, user, "home");
+                updateWall("home", user);
+            } else {
+                document.getElementById("responselog").innerHTML = result.message;
+            }
+        }
     }
+    xhttp.open("POST", "/signin", true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp.send(formdata);
 }
+
+
 
 function tabulardata(tabdata) {
     var i;
@@ -176,16 +159,26 @@ function changepassword(event) {
     var oldPassword = document.getElementById("oldpassword").value;
     var newPassword = document.getElementById("newpassword").value;
     var repeatNewPassword = document.getElementById("repeatnewpassword").value;
+    var formdata = 'oldpass=' + oldPassword + '&newpass=' + newPassword;
     if(newPassword === repeatNewPassword) {
         if (oldPassword !== newPassword) {
             if (newPassword.length > 2){
-                var result = serverstub.changePassword(token, oldPassword, newPassword);
-                if(result) {
-                    document.getElementById("oldpassword").value= '';
-                    document.getElementById("newpassword").value= '';
-                    document.getElementById("repeatnewpassword").value= '';
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (xhttp.readyState == 4 && xhttp.status == 200) {
+                        var response = JSON.parse(xhttp.responseText);
+                        if(response.success) {
+                            document.getElementById("oldpassword").value= '';
+                            document.getElementById("newpassword").value= '';
+                            document.getElementById("repeatnewpassword").value= '';
+                        }
+                        document.getElementById("response1").innerHTML = response.message;
+                    }
                 }
-                document.getElementById("response1").innerHTML = result.message;
+                url = "/changepass/" + token;
+                xhttp.open("POST", url, true);
+                xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                xhttp.send(formdata);
             } else {
                 document.getElementById("response1").innerHTML = "The password is to short.";
             }
@@ -198,59 +191,128 @@ function changepassword(event) {
 }
 
 function userInfo(token, email, view) {
-  var returnCode = serverstub.getUserDataByEmail(token,email);
-  var userData = returnCode.data;
-
-  document.getElementById(view + "-info-firstname").innerHTML = userData.firstname;
-  document.getElementById(view + "-info-familyname").innerHTML = userData.familyname;
-  document.getElementById(view + "-info-gender").innerHTML = userData.gender;
-  document.getElementById(view + "-info-city").innerHTML = userData.city;
-  document.getElementById(view + "-info-country").innerHTML = userData.country;
-  document.getElementById(view + "-info-email").innerHTML = userData.email;
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState == 4 && xhttp.status == 200) {
+            var userData = JSON.parse(xhttp.responseText);
+            document.getElementById(view + "-info-firstname").innerHTML = userData.message[1];
+            document.getElementById(view + "-info-familyname").innerHTML = userData.message[2];
+            document.getElementById(view + "-info-gender").innerHTML = userData.message[3];
+            document.getElementById(view + "-info-city").innerHTML = userData.message[4];
+            document.getElementById(view + "-info-country").innerHTML = userData.message[5];
+            document.getElementById(view + "-info-email").innerHTML = userData.message[0];
+        }
+    }
+    url = "/databyemail/" + token + "/" + email;
+    xhttp.open("GET", url, true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp.send();
 }
 
 function postmessage(view) {
-    email = document.getElementById(view + '-info-email').innerText;
+    var email = document.getElementById(view + '-info-email').innerText;
     var message = document.getElementById(view + "-inputpost").value;
-    serverstub.postMessage(token, message, email);
+    //serverstub.postMessage(token, message, email);
+    //var response = '';//serverstub.getUserMessagesByEmail(token, email).data;
+    var xhttp1 = new XMLHttpRequest();
+    xhttp1.onreadystatechange = function () {
+        if (xhttp1.readyState == 4 && xhttp1.status == 200) {
+            var response = JSON.parse(xhttp1.responseText);
+            console.log(response1);
+        }
+    }
+    var url1 = "/postmessage/" + token + "/" + email + "/" + message;
+    xhttp1.open("GET", url1, true);
+    xhttp1.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp1.send();
+
+    var xhttp2 = new XMLHttpRequest();
+    xhttp2.onreadystatechange = function () {
+        if (xhttp2.readyState == 4 && xhttp2.status == 200) {
+            var response = JSON.parse(xhttp2.responseText);
+            console.log(response);
+            var arrlen = response.data.length;
+            document.getElementById(view + "-apost").innerHTML = "<br>" + response.data[arrlen-1].from_user + " - " + response.data[arrlen-1].message + "</br>";
+            for (var i = 1; i < arrlen; ++i) {
+                document.getElementById(view + "-apost").innerHTML += "<br>" + response.data[arrlen - i - 1].from_user + " - " + response.data[arrlen - i - 1].message + "</br>";
+            }
+            updateWall(view, email);
+
+        }
+    }
+    var url2 = "/messagebyemail/" + token + "/" + email;
+    xhttp2.open("GET", url2, true);
+    xhttp2.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp2.send();
+
     document.getElementById(view + '-inputpost').value= '';
-    updateWall(view);
 }
 
-function updateWall(view) {
-    email = document.getElementById(view + '-info-email').innerText;
-    var response = serverstub.getUserMessagesByEmail(token, email).data;
-        document.getElementById(view + "-apost").innerHTML = "<br>" + response[0].writer + " - " + response[0].content + "</br>";
-        for (var i = 1; i < response.length; ++i) {
-            document.getElementById(view + "-apost").innerHTML += "<br>" + response[i].writer + " - " + response[i].content + "</br>";
+function updateWall(view, email) {
+    if(!email) {
+        var email = document.getElementById(view + '-info-email').innerText;
+    }
+    //var response = '';//serverstub.getUserMessagesByEmail(token, email).data;
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState == 4 && xhttp.status == 200) {
+            var response = JSON.parse(xhttp.responseText);
+            console.log(response);
+            var arrlen = response.data.length;
+            document.getElementById(view + "-apost").innerHTML = "<br>" + response.data[arrlen-1].from_user + " - " + response.data[arrlen-1].message + "</br>";
+            for (var i = 1; i < arrlen; ++i) {
+                document.getElementById(view + "-apost").innerHTML += "<br>" + response.data[arrlen - i - 1].from_user + " - " + response.data[arrlen - i - 1].message + "</br>";
+            }
         }
+    }
+    var url = "/messagebyemail/" + token + "/" + email;
+    xhttp.open("GET", url, true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp.send();
 }
 
 function searchforuser() {
     document.getElementById("browse-user-message").innerHTML = '';
     var email = document.getElementById("search").value;
-    var response = serverstub.getUserMessagesByEmail(token, email);
+    //var response = true;//serverstub.getUserMessagesByEmail(token, email);
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState == 4 && xhttp.status == 200) {
+            var response = JSON.parse(xhttp.responseText);
+            console.log(response);
+            userInfo(token, email, "browse");
+            document.getElementById("browse-reload").style.display = "block";
+            var PIdiv = document.getElementById("browse-personalinformation");
+            PIdiv.style.display = "block";
+            var PAdiv = document.getElementById("browse-postarea");
+            PAdiv.style.display = "block";
+            var PWdiv = document.getElementById("browse-postwall");
+            PWdiv.style.display = "block";
+            updateWall("browse", email);
+        } else{
+            console.log("error"); //document.getElementById("browse-user-message").innerHTML = response.message;
+        }
+    }
+    var url = "/messagebyemail/" + token + "/" + email;
+    xhttp.open("GET", url, true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp.send();
     document.getElementById('search').value= '';
-    if(response.data) {
-        userInfo(token, email, "browse");
-        document.getElementById("browse-reload").style.display = "block";
-        var PIdiv = document.getElementById("browse-personalinformation");
-        PIdiv.style.display = "block";
-        var PAdiv = document.getElementById("browse-postarea");
-        PAdiv.style.display = "block";
-        var PWdiv = document.getElementById("browse-postwall");
-        PWdiv.style.display = "block";
-        updateWall("browse");
-    }
-    else{
-        document.getElementById("browse-user-message").innerHTML = response.message;
-    }
 }
 
-function signOut(event){
-     result = serverstub.signOut(token);
-     if (result.success) {
-         var view = document.getElementById("welcomeview").innerHTML;
-         displayView(view);
+function signOut(event) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState == 4 && xhttp.status == 200) {
+            var response = JSON.parse(xhttp.responseText);
+            if (response.success) {
+                var view = document.getElementById("welcomeview").innerHTML;
+                displayView(view);
+            }
         }
+    }
+    var url = "/signout/" + token;
+    xhttp.open("POST", url, true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp.send();
 }
