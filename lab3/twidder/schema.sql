@@ -5,7 +5,7 @@ DROP TABLE if EXISTS logged_in;
 CREATE TABLE users
 (
   email VARCHAR(30),
-  password VARCHAR(20) NOT NULL,
+  password VARCHAR(50) NOT NULL,
   firstname VARCHAR(20),
   familyname VARCHAR(20),
   gender VARCHAR(20),
@@ -14,13 +14,6 @@ CREATE TABLE users
   CONSTRAINT pk_email PRIMARY KEY(email)
 );
 
-CREATE TABLE messages
-(
-  from_email VARCHAR(30),
-  to_email VARCHAR(30),
-  message TEXT
-
-);
 
 CREATE TABLE logged_in
 (
@@ -28,4 +21,14 @@ CREATE TABLE logged_in
   email VARCHAR(30),
   CONSTRAINT pk_token PRIMARY KEY(token)
 
+);
+
+
+CREATE TABLE messages
+(
+  id TEXT,
+  from_email VARCHAR(30),
+  to_email VARCHAR(30),
+  message TEXT,
+  CONSTRAINT pk_message PRIMARY KEY(id)
 );
