@@ -1,21 +1,15 @@
+from __future__ import print_function
 from flask import Flask, request, jsonify, g, render_template
-
-import hashlib
-
+from gevent.wsgi import WSGIServer
+from geventwebsocket.handler import WebSocketHandler
+import uuid
 import database_helper
 import json
+import sys
 import random
-import os
-import sqlite3
 app = Flask(__name__, static_url_path="")
 
-'''
-@app.request_setup
-def connect_db():
-    rv = sqlite3.connect(app.config['DATABASE'])
-    rv.row_factory = sqlite3.Row()
-    return rv
-    '''
+current_sockets = {}
 
 @app.route('/', methods=['POST', 'GET'])
 def startup():
@@ -31,6 +25,7 @@ def teardown_db(exception):
 
 @app.route('/signin', methods = ['POST'])
 def signin():
+    print('Hello world!', file=sys.stderr)
     email = request.form['email']
     password = request.form['password']
     token = ''
@@ -41,7 +36,6 @@ def signin():
             token = random.randrange(0, 10000, 1)
             if database_helper.add_loggedin_user(email,token):
 
-                # return json.dumps(token)
                 return jsonify({"success": True, "message": token})
             else:
                 return jsonify({"success": False, "message": "not able to add user"})
@@ -146,8 +140,13 @@ def post_message(token, email, message):
     if logged_in:
         user_exists = database_helper.user_exists(email)
         if user_exists:
-            database_helper.post_message(token, message, email)
-            return jsonify({"success": True, "message": "Message posted"})
+            message_id = str(uuid.uuid4())[:8]
+            result= database_helper.post_message(message_id, token, message, email)
+            if result:
+                return message_id
+                return jsonify({"success": True, "message": "Message posted"})
+            else:
+                return jsonify({"success": False, "message": "Not able to post."})
         else:
             return jsonify({"success": False, "message": "There is no such user."})
     else:
@@ -178,12 +177,40 @@ def get_user_messages_by_email(token, email):
         return jsonify({"success": False, "message": "You are not signed in."})
 
 
+@app.route('/deletemessage/<id>', methods=['GET'])
+def deletemessage(id):
+    #id = request.form['id']
+    if database_helper.message_exists(id):
+        database_helper.delete_message(id)
+        return jsonify({"success": True, "message": "Message deleted."})
+    else:
+        return jsonify({"success": False, "message": "There is no such message."})
+
+
+
+
 
 app.run(debug=True)
 database_helper.init_db(app)
 
-'''
-if __name__ == "__main__":
-    app.run(debug=True)
-    database_helper.init_db(app)
-'''
+
+@app.route('/api')
+def api():
+    ws = request.environ.get('wsgi.websocket')
+    if ws:
+        print('ws', file=sys.stderr)
+        #ws = request.environ['wsgi.websocket']
+        while True:
+            email = ws.recieve()
+            print(email, file=sys.stderr)
+            if email in current_sockets:
+                current_sockets[email].send("signout")
+
+            current_sockets[email] = ws;
+
+
+if __name__ == '__main__':
+    http_server = WSGIServer(("", 5000), app, handler_class=WebSocketHandler)
+    http_server.serve_forever()
+
+
