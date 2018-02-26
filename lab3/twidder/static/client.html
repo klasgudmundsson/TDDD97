@@ -3,7 +3,6 @@
 <head>
     <link href="client.css" type="text/css" rel="stylesheet">
     <script src="client.js"></script>
-    <script src="serverstub.js"></script>
 
 
     <script type="text/view" id="welcomeview">
@@ -115,7 +114,11 @@
                 <b id="home-header">Wall with posts</b>
                 <div id="home-apost"></div>
             </div>
-            <button class="button" id="home-reload" onclick="updateWall('home')">Reload page</button>
+            <button class="button" id="home-reload" onclick="updateWall('home', userEmail)">Reload page</button>
+
+            <!--<div id = trash >
+                <img src="filled-trash.png" alt="trashcan" style="width:10%" ondrop="drop(event)" ondragover="allowDrop(event)">
+            </div>-->
         </div>
 
         <div id="Browse" class="tab" style="display:none" >
@@ -146,14 +149,14 @@
             </div>
             <div id = "browse-postarea" style="display:none" >
                 <div id="-browse-posttext"> </div>
-                <textarea id ="browse-inputpost" required></textarea>
+                <textarea id ="browse-inputpost" ondrop="drop(event)" ondragover="allowDrop(event)" required></textarea>
                                 <button type="submit" value="post" id="browse-postonwall" onclick="postmessage('browse')">Post</button>
             </div>
             <div id="browse-postwall" style="display:none" >
                 <b id="browse-header">Wall with posts</b>
                 <div id="browse-apost"></div>
             </div>
-            <button class="button" id="browse-reload" onclick="updateWall('browse')" style="display:none">Reload page</button>
+            <button class="button" id="browse-reload" onclick="updateWall('browse', null)" style="display:none">Reload page</button>
             <p id="browse-user-message"></p>
         </div>
         <div id="Account" class="tab" style="display:none">
