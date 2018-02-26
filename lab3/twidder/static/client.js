@@ -1,5 +1,6 @@
 var token;
 var userEmail;
+var webSocket
 
 displayView = function(page){
     document.body.innerHTML = page;
@@ -15,6 +16,7 @@ window.onload = function() {
     //window.alert("Hello TDDD97!");
 };
 
+/*
 function requestFunction(method, url, params) {
     alert("den gar in i requestfunc");
     var xhttp = new XMLHttpRequest();
@@ -36,7 +38,7 @@ function requestFunction(method, url, params) {
         xhttp.send(params);
          alert("POST funkar efter också");
     }
-}
+}*/
 
 function checknewuser(event) {
     event.preventDefault();
@@ -122,11 +124,13 @@ function loggingin(event) {
         if (xhttp.readyState == 4 && xhttp.status == 200) {
             var result = JSON.parse(xhttp.responseText);
             if(result.success) {
+                //connect_websocket(user);
                 token = result.message;
                 var view2 = document.getElementById("profileview").innerHTML;
                 displayView(view2);
                 userInfo(token, user, "home");
                 updateWall("home", user);
+
             } else {
                 document.getElementById("responselog").innerHTML = result.message;
             }
@@ -217,7 +221,7 @@ function postmessage(view) {
     var xhttp1 = new XMLHttpRequest();
     xhttp1.onreadystatechange = function () {
         if (xhttp1.readyState == 4 && xhttp1.status == 200) {
-            var response = JSON.parse(xhttp1.responseText);
+            var response1 = JSON.parse(xhttp1.responseText);
             console.log(response1);
         }
     }
@@ -226,15 +230,29 @@ function postmessage(view) {
     xhttp1.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp1.send();
 
+
+
+    /*var xhttp3 = new XMLHttpRequest();
+    xhttp2.onreadystatechange = function () {
+        if (xhttp3.readyState == 4 && xhttp3.status == 200) {
+            var response = JSON.parse(xhttp3.responseText);
+            console.log(response1);
+        }
+    }
+    var url3 = "/postmessage/" + token + "/" + email + "/" + message;
+    xhttp3.open("GET", url3, true);
+    xhttp3.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp3.send();*/
+
     var xhttp2 = new XMLHttpRequest();
     xhttp2.onreadystatechange = function () {
         if (xhttp2.readyState == 4 && xhttp2.status == 200) {
             var response = JSON.parse(xhttp2.responseText);
             console.log(response);
             var arrlen = response.data.length;
-            document.getElementById(view + "-apost").innerHTML = "<br>" + response.data[arrlen-1].from_user + " - " + response.data[arrlen-1].message + "</br>";
+            document.getElementById(view + "-apost").innerHTML = "<div class=wallmessage draggable=\"true\" ondragstart=\"drag(event)\">" + response.data[arrlen-1].from_user + " - " + response.data[arrlen-1].message + "</div>";
             for (var i = 1; i < arrlen; ++i) {
-                document.getElementById(view + "-apost").innerHTML += "<br>" + response.data[arrlen - i - 1].from_user + " - " + response.data[arrlen - i - 1].message + "</br>";
+                document.getElementById(view + "-apost").innerHTML += "<div class=wallmessage draggable=\"true\" ondragstart=\"drag(event)\">" + response.data[arrlen-i-1].from_user + " - " + response.data[arrlen-i -1].message + "</div>";
             }
             updateWall(view, email);
 
@@ -257,11 +275,12 @@ function updateWall(view, email) {
     xhttp.onreadystatechange = function () {
         if (xhttp.readyState == 4 && xhttp.status == 200) {
             var response = JSON.parse(xhttp.responseText);
+
             console.log(response);
             var arrlen = response.data.length;
-            document.getElementById(view + "-apost").innerHTML = "<br>" + response.data[arrlen-1].from_user + " - " + response.data[arrlen-1].message + "</br>";
+            document.getElementById(view + "-apost").innerHTML = "<div class=wallmessage draggable=\"true\" ondragstart=\"drag(event)\">" + response.data[arrlen-1].from_user + " - " + response.data[arrlen-1].message + "</div>";
             for (var i = 1; i < arrlen; ++i) {
-                document.getElementById(view + "-apost").innerHTML += "<br>" + response.data[arrlen - i - 1].from_user + " - " + response.data[arrlen - i - 1].message + "</br>";
+                document.getElementById(view + "-apost").innerHTML += "<div class=wallmessage draggable=\"true\" ondragstart=\"drag(event)\">" + response.data[arrlen - i -1].from_user + " - " + response.data[arrlen - i - 1].message + "</div>";
             }
         }
     }
@@ -270,6 +289,7 @@ function updateWall(view, email) {
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
 }
+
 
 function searchforuser() {
     document.getElementById("browse-user-message").innerHTML = '';
@@ -315,4 +335,64 @@ function signOut(event) {
     xhttp.open("POST", url, true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
+}
+
+function connect_websocket(email){
+    webSocket = new WebSocket("ws://127.0.0.1:5000/api");
+    alert("ws");
+    webSocket.onopen = function(){
+        webSocket.send(email);
+        alert("open");
+    }
+    webSocket.onmessage = function(event) {
+        alert("message");
+        var data = event.data;
+        if(data.message == 'signout') {
+            console.log("signout");
+            webSocket.close();
+        }
+    }
+    webSocket.onclose = function() {
+        console.log("signout2")
+        //signOut();
+    }
+
+
+}
+
+// Project
+
+function allowDrop(ev){
+    ev.preventDefault();
+}
+
+function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.innerHTML);
+}
+
+
+function drop(ev){
+    ev.preventDefault();
+    var data = ev.dataTransfer.getData("text");
+    var regex = /\w+\@\w+\.\w+ - (.+)/;
+    var match = regex.exec(data);
+    console.log(match[0]);
+    console.log(match);
+    ev.target.innerHTML = "asd";
+    //var formData = new FormData();
+    //formData.append('id', data);
+    /*var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState == 4 && xhttp.status == 200) {
+            var response = JSON.parse(xhttp.responseText);
+            if (response.success) {
+                updateWall("home",);
+            }
+        }
+    }
+    var url = "/deletemessage/" + id;
+    xhttp.open("GET", url, true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp.send(formData);
+*/
 }
