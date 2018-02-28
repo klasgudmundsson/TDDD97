@@ -1,6 +1,5 @@
 import sqlite3
 from flask import g
-import hashlib
 DATABASE = 'database.db'
 
 
@@ -47,9 +46,8 @@ def query_db(query, args=(), one=False):
 
 def add_user(email, password, firstname, familyname, gender, city, country):
     try:
-        hash_pass = hashlib.sha1(password).hexdigest()
         query_db('INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?)',
-                 [email, hash_pass, firstname, familyname, gender, city, country])
+                 [email, password, firstname, familyname, gender, city, country])
         return True
     except:
         return False
@@ -69,7 +67,6 @@ def get_user(email):
 
 
 def get_useremail(token):
-    # user_data = query_db('SELECT email FROM logged_in WHERE token=?', [token])
     user_data = query_db('SELECT email FROM users WHERE email IN (SELECT email FROM logged_in WHERE token=?)', [token], one=True)
     return user_data
 
@@ -77,7 +74,7 @@ def get_useremail(token):
 def correct_password(email, password):
     correct_password = query_db('SELECT password FROM users WHERE email=?', [email])
     pas = correct_password[0][0]
-    if hashlib.sha1(password).hexdigest() == pas:
+    if password == pas:
         return True
     else:
         return False
@@ -109,8 +106,7 @@ def logout_user(token):
 
 def change_password(email, newpass):
     try:
-        newpass_hash = hashlib.sha1(newpass).hexdigest()
-        query_db('UPDATE users SET password =? WHERE email=?', [newpass_hash, email])
+        query_db('UPDATE users SET password =? WHERE email=?', [newpass, email])
         return True
     except:
         return False
@@ -126,10 +122,10 @@ def get_userdata_by_email(email):
     return user_data
 
 
-def post_message(id, token, message,reciever):
+def post_message(token, message,reciever):
     try:
         sender = get_useremail(token)[0]
-        query_db('INSERT INTO messages VALUES (?, ?,?,?)', [id, sender, str(reciever),str(message)])
+        query_db('INSERT INTO messages VALUES (?,?,?)', [sender, str(reciever),str(message)])
         return True
     except:
         return False
@@ -153,19 +149,3 @@ def get_messages_by_email(email):
         tempobj = {"message": messages[i][0], "from_user": messages[i][1]}
         data.append(tempobj)
     return data
-
-
-def delete_message(id):
-    try:
-        query_db('DELETE FROM messages WHERE id=?', [id])
-        return True
-    except:
-        return False
-
-def message_exists(id):
-    try:
-        query_db('SELECT message FROM messages WHERE id=?', [id])
-        return True
-    except:
-        return False
-

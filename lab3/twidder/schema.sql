@@ -26,9 +26,7 @@ CREATE TABLE logged_in
 
 CREATE TABLE messages
 (
-  id TEXT,
   from_email VARCHAR(30),
   to_email VARCHAR(30),
-  message TEXT,
-  CONSTRAINT pk_message PRIMARY KEY(id)
+  message TEXT
 );

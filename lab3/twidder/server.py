@@ -12,7 +12,7 @@ app = Flask(__name__, static_url_path="")
 current_sockets = {}
 
 @app.route('/', methods=['POST', 'GET'])
-def startup():
+def startup(): 	
     return app.send_static_file('client.html')
 
 
@@ -33,7 +33,7 @@ def signin():
     if user_exist:
         result = database_helper.correct_password(email, password)
         if result:
-            token = random.randrange(0, 10000, 1)
+            token = str(uuid.uuid4())
             if database_helper.add_loggedin_user(email,token):
 
                 return jsonify({"success": True, "message": token})
@@ -78,12 +78,14 @@ def adduser():
 
 @app.route('/signout/<token>', methods=['POST'])
 def signout(token):
-    result = database_helper.loggedin_user(token)  # checks if there is an email logged in
-    if result:
-        database_helper.logout_user(token)
-        return jsonify({"success": True, "message": "Successfully signed out."})
-    else:
-        return jsonify({"success": False, "message": "You are not signed in."})
+	result = database_helper.loggedin_user(token)  # checks if there is an email logged in
+	if result:
+		database_helper.logout_user(token)
+		email = database_helper.get_useremail(token)[0]
+		del current_sockets[email]
+		return jsonify({"success": True, "message": "Successfully signed out."})
+	else:
+		return jsonify({"success": False, "message": "You are not signed in."})
 
 
 @app.route('/changepass/<token>', methods=['POST'])
@@ -135,15 +137,13 @@ def post_message(token, email, message):
     #token = request.form['token']
     #message = request.form['message']
     #email = request.form['email']
-    #sender_email = database_helper.get_useremail(token)
+    sender_email = database_helper.get_useremail(token)
     logged_in = database_helper.loggedin_user(token)
     if logged_in:
         user_exists = database_helper.user_exists(email)
         if user_exists:
-            message_id = str(uuid.uuid4())[:8]
-            result= database_helper.post_message(message_id, token, message, email)
+            result= database_helper.post_message(token, message, email)
             if result:
-                return message_id
                 return jsonify({"success": True, "message": "Message posted"})
             else:
                 return jsonify({"success": False, "message": "Not able to post."})
@@ -177,40 +177,38 @@ def get_user_messages_by_email(token, email):
         return jsonify({"success": False, "message": "You are not signed in."})
 
 
-@app.route('/deletemessage/<id>', methods=['GET'])
-def deletemessage(id):
-    #id = request.form['id']
-    if database_helper.message_exists(id):
-        database_helper.delete_message(id)
-        return jsonify({"success": True, "message": "Message deleted."})
-    else:
-        return jsonify({"success": False, "message": "There is no such message."})
-
-
-
-
-
-app.run(debug=True)
 database_helper.init_db(app)
-
 
 @app.route('/api')
 def api():
-    ws = request.environ.get('wsgi.websocket')
-    if ws:
-        print('ws', file=sys.stderr)
-        #ws = request.environ['wsgi.websocket']
-        while True:
-            email = ws.recieve()
-            print(email, file=sys.stderr)
-            if email in current_sockets:
-                current_sockets[email].send("signout")
+	ws = request.environ.get('wsgi.websocket')
+	if ws:
+		print('ws', file=sys.stderr)
+		ws = request.environ['wsgi.websocket']
+		while True:
+			email = ws.receive()
+			print(email, file=sys.stderr)
+			print(ws, file=sys.stderr)
+			print(current_sockets, file=sys.stderr)
+			if email in current_sockets:
+				current_sockets[email].send("signout")
+				del current_sockets[email]
+				print(current_sockets, file=sys.stderr)
+			current_sockets[email] = ws;
+			print(current_sockets, file=sys.stderr)
 
-            current_sockets[email] = ws;
+
+@app.route('/socket')
+def msocket():
+	ws = request.environ.get('wsgi.websocket')
+	if ws:
+		while True:
+			message = ws.receive()
+			ws.send(message)
 
 
-if __name__ == '__main__':
-    http_server = WSGIServer(("", 5000), app, handler_class=WebSocketHandler)
+if __name__ == '__main__':	
+    http_server = WSGIServer(("127.0.0.1", 5000), app, handler_class=WebSocketHandler)
     http_server.serve_forever()
 
 
