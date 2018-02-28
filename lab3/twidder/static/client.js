@@ -16,29 +16,6 @@ window.onload = function() {
     //window.alert("Hello TDDD97!");
 };
 
-/*
-function requestFunction(method, url, params) {
-    alert("den gar in i requestfunc");
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            alert("Godkand");
-            result = JSON.parse(this.responseText);
-            alert("Det funkar");
-        }
-    };
-    if (method == "GET") {
-        xhttp.open(method, url + '?' + params, true);
-        xhttp.send();
-    } else if (method == "POST") {
-        alert("Post funkar");
-        xhttp.open(method, url, true);
-        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttp.setRequestHeader("token", params);
-        xhttp.send(params);
-         alert("POST funkar efter också");
-    }
-}*/
 
 function checknewuser(event) {
     event.preventDefault();
@@ -141,7 +118,7 @@ function loggingin(event) {
     xhttp.send(formdata);
 }
 
-// skicka tillbaka token till server för att ientifiera klineten.
+
 
 function tabulardata(tabdata) {
     var i;
@@ -216,6 +193,8 @@ function userInfo(token, email, view) {
 function postmessage(view) {
     var email = document.getElementById(view + '-info-email').innerText;
     var message = document.getElementById(view + "-inputpost").value;
+    //serverstub.postMessage(token, message, email);
+    //var response = '';//serverstub.getUserMessagesByEmail(token, email).data;
     var xhttp1 = new XMLHttpRequest();
     xhttp1.onreadystatechange = function () {
         if (xhttp1.readyState == 4 && xhttp1.status == 200) {
@@ -248,11 +227,11 @@ function postmessage(view) {
             var response = JSON.parse(xhttp2.responseText);
             console.log(response);
             var arrlen = response.data.length;
-            document.getElementById(view + "-apost").innerHTML = response.data[arrlen-1].from_user + " - " + response.data[arrlen-1].message + "<br>";
+            document.getElementById(view + "-apost").innerHTML = "<div class=wallmessage draggable=\"true\" ondragstart=\"drag(event)\">" + response.data[arrlen-1].from_user + " - " + response.data[arrlen-1].message + "</div>";
             for (var i = 1; i < arrlen; ++i) {
-                document.getElementById(view + "-apost").innerHTML += response.data[arrlen-i-1].from_user + " - " + response.data[arrlen-i -1].message + "<br>";
+                document.getElementById(view + "-apost").innerHTML += "<div class=wallmessage draggable=\"true\" ondragstart=\"drag(event)\">" + response.data[arrlen-i-1].from_user + " - " + response.data[arrlen-i -1].message + "</div>";
             }
-            //updateWall(view, email);
+            updateWall(view, email);
 
         }
     }
@@ -276,9 +255,9 @@ function updateWall(view, email) {
 
             console.log(response);
             var arrlen = response.data.length;
-            document.getElementById(view + "-apost").innerHTML = + response.data[arrlen-1].from_user + " - " + response.data[arrlen-1].message + "<br>";
+            document.getElementById(view + "-apost").innerHTML = "<div class=wallmessage draggable=\"true\" ondragstart=\"drag(event)\">" + response.data[arrlen-1].from_user + " - " + response.data[arrlen-1].message + "</div>";
             for (var i = 1; i < arrlen; ++i) {
-                document.getElementById(view + "-apost").innerHTML += response.data[arrlen - i -1].from_user + " - " + response.data[arrlen - i - 1].message +  "<br>";
+                document.getElementById(view + "-apost").innerHTML += "<div class=wallmessage draggable=\"true\" ondragstart=\"drag(event)\">" + response.data[arrlen - i -1].from_user + " - " + response.data[arrlen - i - 1].message + "</div>";
             }
         }
     }
@@ -337,7 +316,7 @@ function signOut(event) {
 
 function connect_websocket(email){
     webSocket = new WebSocket("ws://127.0.0.1:5000/api");
-    console.log("ws");
+    alert("ws");
     webSocket.onopen = function(){
         webSocket.send(email);
         alert("open");
@@ -345,7 +324,6 @@ function connect_websocket(email){
     webSocket.onmessage = function(event) {
         alert("message");
         var data = event.data;
-		console.log("message");
         if(data.message == 'signout') {
             console.log("signout");
             webSocket.close();
@@ -359,3 +337,25 @@ function connect_websocket(email){
 
 }
 
+// Project
+
+function allowDrop(ev){
+    ev.preventDefault();
+}
+
+function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.innerHTML);
+}
+
+
+function drop(ev){
+    ev.preventDefault();
+    var data = ev.dataTransfer.getData("text");
+    var regex = /\w+\@\w+\.\w+ - (.+)/;
+    var match = regex.exec(data);
+    console.log(match[0]);
+    console.log(match);
+    ev.target.innerHTML = "asd";
+    //var formData = new FormData();
+
+}

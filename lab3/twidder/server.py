@@ -78,14 +78,14 @@ def adduser():
 
 @app.route('/signout/<token>', methods=['POST'])
 def signout(token):
-	result = database_helper.loggedin_user(token)  # checks if there is an email logged in
-	if result:
-		database_helper.logout_user(token)
-		email = database_helper.get_useremail(token)[0]
-		del current_sockets[email]
-		return jsonify({"success": True, "message": "Successfully signed out."})
-	else:
-		return jsonify({"success": False, "message": "You are not signed in."})
+    result = database_helper.loggedin_user(token)  # checks if there is an email logged in
+    if result:
+        database_helper.logout_user(token)
+        return jsonify({"success": True, "message": "Successfully signed out."})
+    else:
+        return jsonify({"success": False, "message": "You are not signed in."})
+
+
 
 
 @app.route('/changepass/<token>', methods=['POST'])
@@ -181,30 +181,30 @@ database_helper.init_db(app)
 
 @app.route('/api')
 def api():
-	ws = request.environ.get('wsgi.websocket')
-	if ws:
-		print('ws', file=sys.stderr)
-		ws = request.environ['wsgi.websocket']
-		while True:
-			email = ws.receive()
-			print(email, file=sys.stderr)
-			print(ws, file=sys.stderr)
-			print(current_sockets, file=sys.stderr)
-			if email in current_sockets:
-				current_sockets[email].send("signout")
-				del current_sockets[email]
-				print(current_sockets, file=sys.stderr)
-			current_sockets[email] = ws;
-			print(current_sockets, file=sys.stderr)
+    ws = request.environ.get('wsgi.websocket')
+    if ws:
+        print('ws', file=sys.stderr)
+        ws = request.environ['wsgi.websocket']
+        while True:
+            email = ws.receive()
+            print(email, file=sys.stderr)
+            print(ws, file=sys.stderr)
+            print(current_sockets, file=sys.stderr)
+            if email in current_sockets:
+                current_sockets[email].send("signout")
+                del current_sockets[email]
+                print(current_sockets, file=sys.stderr)
+            current_sockets[email] = ws;
+            print(current_sockets, file=sys.stderr)
 
 
 @app.route('/socket')
 def msocket():
-	ws = request.environ.get('wsgi.websocket')
-	if ws:
-		while True:
-			message = ws.receive()
-			ws.send(message)
+    ws = request.environ.get('wsgi.websocket')
+    if ws:
+        while True:
+            message = ws.receive()
+            ws.send(message)
 
 
 if __name__ == '__main__':	
