@@ -271,30 +271,35 @@ function updateWall(view, email) {
 function searchforuser() {
     document.getElementById("browse-user-message").innerHTML = '';
     var email = document.getElementById("search").value;
-    //var response = true;//serverstub.getUserMessagesByEmail(token, email);
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (xhttp.readyState == 4 && xhttp.status == 200) {
             var response = JSON.parse(xhttp.responseText);
-            console.log(response);
-            userInfo(token, email, "browse");
-            document.getElementById("browse-reload").style.display = "block";
-            var PIdiv = document.getElementById("browse-personalinformation");
-            PIdiv.style.display = "block";
-            var PAdiv = document.getElementById("browse-postarea");
-            PAdiv.style.display = "block";
-            var PWdiv = document.getElementById("browse-postwall");
-            PWdiv.style.display = "block";
-            updateWall("browse", email);
-        } else{
+            if (response.data) {
+                userInfo(token, email, "browse");
+                document.getElementById("browse-reload").style.display = "block";
+                var PIdiv = document.getElementById("browse-personalinformation");
+                PIdiv.style.display = "block";
+                var PAdiv = document.getElementById("browse-postarea");
+                PAdiv.style.display = "block";
+                var PWdiv = document.getElementById("browse-postwall");
+                PWdiv.style.display = "block";
+                updateWall("browse", email);
+            }
+            else {
+                document.getElementById("browsetext").innerHTML = "Det funkar ej";
+            }
+        }
+        else {
             console.log("error"); //document.getElementById("browse-user-message").innerHTML = response.message;
         }
     }
+
     var url = "/messagebyemail/" + token + "/" + email;
     xhttp.open("GET", url, true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
-    document.getElementById('search').value= '';
+    document.getElementById('search').value = '';
 }
 
 function signOut(event) {
@@ -304,6 +309,7 @@ function signOut(event) {
             var response = JSON.parse(xhttp.responseText);
             if (response.success) {
                 var view = document.getElementById("welcomeview").innerHTML;
+
                 displayView(view);
             }
         }
@@ -316,24 +322,18 @@ function signOut(event) {
 
 function connect_websocket(email){
     webSocket = new WebSocket("ws://127.0.0.1:5000/api");
-    alert("ws");
     webSocket.onopen = function(){
         webSocket.send(email);
-        alert("open");
     }
     webSocket.onmessage = function(event) {
-        alert("message");
         var data = event.data;
-        if(data.message == 'signout') {
-            console.log("signout");
-            webSocket.close();
+        if(data  == 'signout') {
+            signOut();
         }
     }
     webSocket.onclose = function() {
-        console.log("signout2")
-        //signOut();
+        console.log("signout2");
     }
-
 
 }
 

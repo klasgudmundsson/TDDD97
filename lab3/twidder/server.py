@@ -33,9 +33,12 @@ def signin():
     if user_exist:
         result = database_helper.correct_password(email, password)
         if result:
+
             token = str(uuid.uuid4())
             if database_helper.add_loggedin_user(email,token):
-
+                if email in current_sockets:
+                    current_sockets[email].send("signout")
+                    del current_sockets[email]
                 return jsonify({"success": True, "message": token})
             else:
                 return jsonify({"success": False, "message": "not able to add user"})
@@ -80,7 +83,12 @@ def adduser():
 def signout(token):
     result = database_helper.loggedin_user(token)  # checks if there is an email logged in
     if result:
-        database_helper.logout_user(token)
+        email = database_helper.get_useremail(token)[0]
+
+        if email in current_sockets:
+            del current_sockets[email]
+            print(current_sockets, file=sys.stderr)
+            database_helper.logout_user(token)
         return jsonify({"success": True, "message": "Successfully signed out."})
     else:
         return jsonify({"success": False, "message": "You are not signed in."})
@@ -183,19 +191,26 @@ database_helper.init_db(app)
 def api():
     ws = request.environ.get('wsgi.websocket')
     if ws:
-        print('ws', file=sys.stderr)
-        ws = request.environ['wsgi.websocket']
-        while True:
-            email = ws.receive()
-            print(email, file=sys.stderr)
-            print(ws, file=sys.stderr)
-            print(current_sockets, file=sys.stderr)
-            if email in current_sockets:
-                current_sockets[email].send("signout")
-                del current_sockets[email]
+        try:
+
+            print('ws', file=sys.stderr)
+            ws = request.environ['wsgi.websocket']
+            while True:
+                email = ws.receive()
+                print(email, file=sys.stderr)
+                print(ws, file=sys.stderr)
                 print(current_sockets, file=sys.stderr)
-            current_sockets[email] = ws;
-            print(current_sockets, file=sys.stderr)
+
+                if email in current_sockets:
+                    current_sockets[email].send("signout")
+                    del current_sockets[email]
+                    ws.close()
+                    print(current_sockets, file=sys.stderr)
+
+        except WebSocketError as e:
+            repr(e)
+            print ("WebSocketError")
+            del current_sockets[email]
 
 
 @app.route('/socket')
