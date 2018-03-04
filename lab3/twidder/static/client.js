@@ -1,6 +1,5 @@
 var token;
 var userEmail;
-var webSocket
 
 displayView = function(page){
     document.body.innerHTML = page;
@@ -101,24 +100,22 @@ function loggingin(event) {
         if (xhttp.readyState == 4 && xhttp.status == 200) {
             var result = JSON.parse(xhttp.responseText);
             if(result.success) {
-                connect_websocket(user);
-                token = result.message;
-                var view2 = document.getElementById("profileview").innerHTML;
-                displayView(view2);
-                userInfo(token, user, "home");
-                updateWall("home", user);
+				token = result.message;
+				connect_websocket(user, token)
+				var view2 = document.getElementById("profileview").innerHTML;
+				displayView(view2);
+				userInfo(token, user, "home");
+				updateWall("home", user);
 
             } else {
                 document.getElementById("responselog").innerHTML = result.message;
             }
-        }
-    }
-    xhttp.open("POST", "/signin", true);
-    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xhttp.send(formdata);
+		}
+	}
+	xhttp.open("POST", "/signin", true);
+	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhttp.send(formdata);
 }
-
-
 
 function tabulardata(tabdata) {
     var i;
@@ -247,7 +244,6 @@ function updateWall(view, email) {
     if(!email) {
         var email = document.getElementById(view + '-info-email').innerText;
     }
-    //var response = '';//serverstub.getUserMessagesByEmail(token, email).data;
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (xhttp.readyState == 4 && xhttp.status == 200) {
@@ -309,7 +305,6 @@ function signOut(event) {
             var response = JSON.parse(xhttp.responseText);
             if (response.success) {
                 var view = document.getElementById("welcomeview").innerHTML;
-
                 displayView(view);
             }
         }
@@ -320,21 +315,35 @@ function signOut(event) {
     xhttp.send();
 }
 
-function connect_websocket(email){
+var webSocket
+
+function connect_websocket(email, token) {
     webSocket = new WebSocket("ws://127.0.0.1:5000/api");
-    webSocket.onopen = function(){
-        webSocket.send(email);
+	
+    webSocket.onopen = function(event){
+		var message = JSON.stringify({"login":false, "message":"open!"});
+		webSocket.send(message);
+		console.log('open: ' + event);
+	
+		message = JSON.stringify({"login":true, "message":"Logging in", "token":token, "user":email});
+		webSocket.send(message);
     }
+	
     webSocket.onmessage = function(event) {
-        var data = event.data;
-        if(data  == 'signout') {
-            signOut();
-        }
+		data = JSON.parse(event.data)
+		console.log(data["message"]);
+		if (data["logout"]) {
+			console.log('signout, same user logged in twice');
+			signOut();
+		}
     }
     webSocket.onclose = function() {
-        console.log("signout2");
+        console.log("ws close");
     }
-
+	
+	webSocket.onerror = function(event) {
+		console.log('error: ' + event.data);
+	}
 }
 
 // Project
