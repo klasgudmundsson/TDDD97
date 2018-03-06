@@ -1,4 +1,3 @@
-from __future__ import print_function
 from flask import Flask, request, jsonify, g, render_template
 from gevent.wsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
@@ -6,13 +5,14 @@ import uuid
 import database_helper
 import json
 import sys
-import random
+import websocket_handler
+
 app = Flask(__name__, static_url_path="")
 
 current_sockets = {}
 
 @app.route('/', methods=['POST', 'GET'])
-def startup(): 	
+def startup():
     return app.send_static_file('client.html')
 
 
@@ -25,7 +25,6 @@ def teardown_db(exception):
 
 @app.route('/signin', methods = ['POST'])
 def signin():
-    print('Hello world!', file=sys.stderr)
     email = request.form['email']
     password = request.form['password']
     token = ''
@@ -33,12 +32,8 @@ def signin():
     if user_exist:
         result = database_helper.correct_password(email, password)
         if result:
-
             token = str(uuid.uuid4())
             if database_helper.add_loggedin_user(email,token):
-                if email in current_sockets:
-                    current_sockets[email].send("signout")
-                    del current_sockets[email]
                 return jsonify({"success": True, "message": token})
             else:
                 return jsonify({"success": False, "message": "not able to add user"})
@@ -84,11 +79,8 @@ def signout(token):
     result = database_helper.loggedin_user(token)  # checks if there is an email logged in
     if result:
         email = database_helper.get_useremail(token)[0]
-
-        if email in current_sockets:
-            del current_sockets[email]
-            print(current_sockets, file=sys.stderr)
-            database_helper.logout_user(token)
+        websocket_handler.manual_logout(email, token)
+        database_helper.logout_user(token)
         return jsonify({"success": True, "message": "Successfully signed out."})
     else:
         return jsonify({"success": False, "message": "You are not signed in."})
@@ -177,7 +169,7 @@ def get_user_messages_by_email(token, email):
     if logged_in:
         user_exists = database_helper.user_exists(email)
         if user_exists:
-            messages = database_helper.get_messages_by_email(email)
+            messages = database_helper.get_messages_by_email(email) 
             return jsonify({"success": True, "message": "User messages retrieved", "data": messages})
         else:
             return jsonify({"success": False, "message": "There is no such user."})
@@ -189,37 +181,8 @@ database_helper.init_db(app)
 
 @app.route('/api')
 def api():
-    ws = request.environ.get('wsgi.websocket')
-    if ws:
-        try:
-
-            print('ws', file=sys.stderr)
-            ws = request.environ['wsgi.websocket']
-            while True:
-                email = ws.receive()
-                print(email, file=sys.stderr)
-                print(ws, file=sys.stderr)
-                print(current_sockets, file=sys.stderr)
-
-                if email in current_sockets:
-                    current_sockets[email].send("signout")
-                    del current_sockets[email]
-                    ws.close()
-                    print(current_sockets, file=sys.stderr)
-
-        except WebSocketError as e:
-            repr(e)
-            print ("WebSocketError")
-            del current_sockets[email]
-
-
-@app.route('/socket')
-def msocket():
-    ws = request.environ.get('wsgi.websocket')
-    if ws:
-        while True:
-            message = ws.receive()
-            ws.send(message)
+    if request.environ.get('wsgi.websocket'):
+        websocket_handler.handle_websocket(request.environ['wsgi.websocket'])
 
 
 if __name__ == '__main__':	
