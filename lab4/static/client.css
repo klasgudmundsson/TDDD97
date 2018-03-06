@@ -1,103 +1,101 @@
 body {
     background-color: #ecf8ff;
 
-
 }
 
-#centerbox {
+button{
+    float:right;
+    margin-top: 10px;
+}
+
+.firstpage{
     margin: 100px auto;
     width:600px;
     height: 400px;
 
 }
 
-
 #logo {
     float: left;
     width: 340px;
     height:400px;
-    margin: 0 5px 0 0;
-}
-
-.login {
-
-    background-color: white;
-    width: 250px;
-    height: 100px;
-    float: right;
-    margin-top: 0;
-    margin-right: 0;
-    margin-left: 5px;
-    margin-bottom: 5px;
-}
-
-.signup {
-    background-color: white;
-    width: 250px;
-    height: 290px;
-    float: right;
-    margin: 5px 0 0 5px;
-    bottom: 0;
-}
-
-.inner{
-	margin-left: auto;
-	margin-right: auto;
-    margin-top:10px;
-    margin-left: 3px;
 }
 
 
-button{
-	margin-right: 10px;
-    float: right;
-
+#signin{
+    padding-left: 40px;
 }
 
-input{
-    float: right;
-     margin-right: 5px;
+.logintext{
+    font-size: 25px;
 }
 
 
-.row{
-	width: 100%;
-	margin-top: 5px;
+.signuptext{
+    font-size: 25px;
+}
+
+/* Padding of the login and signup form depending on the screen-size*/
+@media screen and (max-width:2000px) {
+    #login {
+        padding-left: 50px;
+    }
+}
+ @media screen and (max-width:1200px) {
+        #login{
+            padding-left:75px;
+        }
+    }
+@media screen and (max-width:768px) {
+    #login {
+        padding-left: 0px;
+    }
+}
+@media screen and (max-width:320px) {
+    #login {
+        padding-left: 0px;
+    }
+}
+@media screen and (max-width:2000px) {
+    #saveform {
+        padding-left: 50px;
+    }
+}
+ @media screen and (max-width:1200px) {
+        #saveform{
+            padding-left:75px;
+        }
+    }
+@media screen and (max-width:768px) {
+    #saveform {
+        padding-left: 0px;
+    }
+}
+
+@media screen and (max-width:320px) {
+    #saveform {
+        padding-left: 0px;
+    }
+}
+
+.w3{
+    margin-top: 10px;
 }
 
 .w3-select{
-    float:right;
+    float: right;
     margin-right: 5px;
-
+    margin-left: 10px;
 }
 
-.signuptext {
-    font-family: Arial;
-    font-size: 20px;
-    margin-bottom: 20px;
-    margin-left: 60px;
-}
 
-.login .inner{
-    margin-top: 20px;
-}
+/* Profile */
 
 #signout{
     width: 100px;
     height: 30px;
-    background-color: #9ce9ff;
-    border-width: 2px;
-    border-color: #3048ff;
-    clear: both;
-    position: absolute;
-    right: 0;
-    top: 0;
-    margin-top: 20px;
-    margin-right: 15px;
-
+    float: right;
 }
-/* Profile */
-
 
 .tablink{
     float: left;
@@ -106,6 +104,7 @@ input{
     background-color: #9ce9ff;
     border-width: 2px;
     border-color: #3048ff;
+    text-color: black;
 }
 
 .tablink:focus {
@@ -114,109 +113,142 @@ input{
 
 /* Change password */
 
-
-#changepassword {
-    background-color: floralwhite;
-    margin: 100px auto;
-    width:350px;
-    height: 175px;
-
+.savenew{
+    padding-left: 25px;
+    padding-right: 25px;
 }
 
 
-#changepassword h1{
-    position: relative;
-    margin-top: 10%;
-    font-family: Arial;
-}
 
-#changepassword button {
-    position: relative;
-    left: 40%;
-    top: 27px;
-    width: 45%;
-    height: 20px;
-}
+/* Home-tab */
+
 
 .tab h2{
     position: relative;
     left: 25%;
 }
 
-/* Home-tab */
-
 #home-personalinformation {
     font-family: Helvetica;
     float: left;
-    width: 25%;
-    height: 500px;
+    height: 600px;
     background-color: white;
-    margin-left: 5px;
+    margin-left: 15px;
+    margin-bottom: 10px;
 }
+
+
+
 #browse-personalinformation {
     font-family: Helvetica;
     float: left;
-    width: 25%;
-    height: 500px;
+    height: 600px;
     background-color: white;
-    margin-left: 5px;
+    margin-left: 15px;
+    margin-bottom: 10px;
+
 }
 
 #home-postarea {
     float: left;
-    width: 40%;
-    height: 150px;
+    height: 160px;
     background-color: white;
     margin: 0 5px 5px 15px;
 }
+
 #browse-postarea {
     float: left;
-    width: 40%;
-    height: 150px;
+    height: 160px;
     background-color: white;
     margin: 0 5px 5px 15px;
 }
+
+#postonwall{
+    margin-top: 0px;
+    margin-right:10px;
+}
+
+
+/* Padding of the reload-button depending on the screen-size*/
+@media screen and (max-width:2000px) {
+    #home-reload {
+        margin-top: 200px;
+    }
+}
+ @media screen and (max-width:1200px) {
+        #home-reload{
+            margin-left:-10px;
+            margin-top: 200px;
+        }
+    }
+@media screen and (max-width:768px) {
+    #home-reload {
+        margin-left: 5px;
+        margin-top: 10px;
+    }
+}
+
+@media screen and (max-width:320px) {
+    #home-reload {
+        margin-left: 50px;
+        margin-top: 10px;
+    }
+}
+
+@media screen and (max-width:2000px) {
+    #browse-reload {
+        margin-top: 80px;
+    }
+}
+ @media screen and (max-width:1200px) {
+        #browse-reload{
+            margin-left:-10px;
+            margin-top: 80px;
+        }
+    }
+@media screen and (max-width:768px) {
+    #browse-reload {
+        margin-left: 5px;
+        margin-top: 10px;
+    }
+}
+
+@media screen and (max-width:320px) {
+    #browse-reload {
+        margin-left: 50px;
+        margin-top: 10px;
+    }
+}
+
+#browse-postonwall{
+    margin-top: 0px;
+    margin-right:10px;
+}
+
+
+
 #home-postwall {
     float: left;
-    width: 40%;
     height: 500px;
     background-color: white;
     margin: 10px 5px 5px 15px;
 }
 #browse-postwall {
     float: left;
-    width: 40%;
     height: 500px;
     background-color: white;
     margin: 10px 5px 5px 15px;
 }
-#home-reload {
-    float: left;
-}
-#browse-reload {
-    float: left;
-}
 
 .button{
-    margin: 10px;
 
-    width: 90px;
-    height: 25px;
     background-color: #9ce9ff;
     border-width: 2px;
     border-color: white;
 }
 
+
 #home-postonwall {
-    position: relative;
-    top: 80%;
-     width: 90px;
-    height: 25px;
-    background-color: #9ce9ff;
-    border-width: 2px;
-    border-color: #ecf8ff;
-}
-#browse-postonwall {
     position: relative;
     top: 80%;
      width: 90px;
@@ -269,7 +301,7 @@ input{
     border-width: 1px;
     border-color: black;
     width: 90%;
-    height: 70%;
+    height: 60%;
     font-size: large;
 }
 #browse-inputpost {
@@ -293,7 +325,6 @@ input{
 
 /*Browse */
 #searchbar{
-    width: 40%;
     height: 50px;
     margin: auto;
     margin-top: 75px;
@@ -301,15 +332,19 @@ input{
 }
 
 #search{
-    width: 70%;
-    height: 20px;
+    height: 30px;
     float:left;
     border-radius: 15px;
     border: 1px black solid;
-    margin:10px;
 
+}
+
+#searchbar button{
+    margin-bottom: 10px;
 }
 
 #browse-user-message {
     margin-left: 45%;
 }
+
+
