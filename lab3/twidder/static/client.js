@@ -1,5 +1,4 @@
 var token;
-var userEmail;
 
 displayView = function(page){
     document.body.innerHTML = page;
@@ -344,27 +343,4 @@ function connect_websocket(email, token) {
 	webSocket.onerror = function(event) {
 		console.log('error: ' + event.data);
 	}
-}
-
-// Project
-
-function allowDrop(ev){
-    ev.preventDefault();
-}
-
-function drag(ev) {
-    ev.dataTransfer.setData("text", ev.target.innerHTML);
-}
-
-
-function drop(ev){
-    ev.preventDefault();
-    var data = ev.dataTransfer.getData("text");
-    var regex = /\w+\@\w+\.\w+ - (.+)/;
-    var match = regex.exec(data);
-    console.log(match[0]);
-    console.log(match);
-    ev.target.innerHTML = "asd";
-    //var formData = new FormData();
-
 }
