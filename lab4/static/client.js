@@ -13,7 +13,6 @@ window.onload = function() {
     //code that is executed as the page is loaded.
     //You shall put your own custom code here.
     //window.alert() is not allowed to be used in your implementation.
-    //window.alert("Hello TDDD97!");
 };
 
 /*
@@ -61,6 +60,8 @@ function checknewuser(event) {
     formdata += "gender=" + list[index].text + "&";
     formdata += "city=" + city + "&";
     formdata += "country=" + country;
+	
+	
 
     var re = /\w+\@\w+\.\w+/;
 
@@ -163,7 +164,9 @@ function changepassword(event) {
     var oldPassword = document.getElementById("oldpassword").value;
     var newPassword = document.getElementById("newpassword").value;
     var repeatNewPassword = document.getElementById("repeatnewpassword").value;
-    var formdata = 'oldpass=' + oldPassword + '&newpass=' + newPassword;
+	var signature = hashParametersWithToken(token, user, ["oldpass", oldPassword, "newpass", newPassword]);
+    var formdata = 'oldpass=' + oldPassword + '&newpass=' + newPassword + "&"
+	+ 'sign=' + signature;
     if(newPassword === repeatNewPassword) {
         if (oldPassword !== newPassword) {
             if (newPassword.length > 2){
@@ -207,7 +210,9 @@ function userInfo(token, email, view) {
             document.getElementById(view + "-info-email").innerHTML = userData.message[0];
         }
     }
-    url = "/databyemail/" + token + "/" + email;
+	var signature = hashParametersWithToken(token, email, []);
+	console.log(signature);
+    var url = "/databyemail/" + token + "/" + signature;
     xhttp.open("GET", url, true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
@@ -216,8 +221,6 @@ function userInfo(token, email, view) {
 function postmessage(view) {
     var email = document.getElementById(view + '-info-email').innerText;
     var message = document.getElementById(view + "-inputpost").value;
-    //serverstub.postMessage(token, message, email);
-    //var response = '';//serverstub.getUserMessagesByEmail(token, email).data;
     var xhttp1 = new XMLHttpRequest();
     xhttp1.onreadystatechange = function () {
         if (xhttp1.readyState == 4 && xhttp1.status == 200) {
@@ -225,25 +228,13 @@ function postmessage(view) {
             console.log(response1);
         }
     }
-    var url1 = "/postmessage/" + token + "/" + email + "/" + message;
+	var signature = hashParametersWithToken(token, email, ["message", message]);
+    var getdata = 'message=' + message + '&sign=' + signature;
+	var url1 = "/postmessage/" + token + "/" + getdata; //email + "/" + message;
     xhttp1.open("GET", url1, true);
     xhttp1.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp1.send();
-
-
-
-    /*var xhttp3 = new XMLHttpRequest();
-    xhttp2.onreadystatechange = function () {
-        if (xhttp3.readyState == 4 && xhttp3.status == 200) {
-            var response = JSON.parse(xhttp3.responseText);
-            console.log(response1);
-        }
-    }
-    var url3 = "/postmessage/" + token + "/" + email + "/" + message;
-    xhttp3.open("GET", url3, true);
-    xhttp3.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xhttp3.send();*/
-
+	
     var xhttp2 = new XMLHttpRequest();
     xhttp2.onreadystatechange = function () {
         if (xhttp2.readyState == 4 && xhttp2.status == 200) {
@@ -255,10 +246,10 @@ function postmessage(view) {
                 document.getElementById(view + "-apost").innerHTML += "<div class=wallmessage draggable=\"true\" ondragstart=\"drag(event)\">" + response.data[arrlen-i-1].from_user + " - " + response.data[arrlen-i -1].message + "</div>";
             }
             updateWall(view, email);
-
         }
     }
-    var url2 = "/messagebyemail/" + token + "/" + email;
+	sign = hashParametersWithToken(token, user, []);
+    var url2 = "/messagebyemail/" + token + "/" + sign;
     xhttp2.open("GET", url2, true);
     xhttp2.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp2.send();
@@ -270,12 +261,10 @@ function updateWall(view, email) {
     if(!email) {
         var email = document.getElementById(view + '-info-email').innerText;
     }
-    //var response = '';//serverstub.getUserMessagesByEmail(token, email).data;
-    var xhttp = new XMLHttpRequest();
+	var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (xhttp.readyState == 4 && xhttp.status == 200) {
             var response = JSON.parse(xhttp.responseText);
-
             console.log(response);
             var arrlen = response.data.length;
             document.getElementById(view + "-apost").innerHTML = "<div class=wallmessage draggable=\"true\" ondragstart=\"drag(event)\">" + response.data[arrlen-1].from_user + " - " + response.data[arrlen-1].message + "</div>";
@@ -284,17 +273,16 @@ function updateWall(view, email) {
             }
         }
     }
-    var url = "/messagebyemail/" + token + "/" + email;
+	var signature = hashParametersWithToken(token, email, []);
+    var url = "/messagebyemail/" + token + "/" + signature;
     xhttp.open("GET", url, true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
 }
 
-
 function searchforuser() {
     document.getElementById("browse-user-message").innerHTML = '';
     var email = document.getElementById("search").value;
-    //var response = true;//serverstub.getUserMessagesByEmail(token, email);
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (xhttp.readyState == 4 && xhttp.status == 200) {
@@ -313,8 +301,9 @@ function searchforuser() {
             console.log("error"); //document.getElementById("browse-user-message").innerHTML = response.message;
         }
     }
-    var url = "/messagebyemail/" + token + "/" + email;
-    xhttp.open("GET", url, true);
+    var signature = hashParametersWithToken(token, email, []);
+    var url = "/messagebyemail/" + token + "/" + signature;
+	xhttp.open("GET", url, true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
     document.getElementById('search').value= '';
@@ -337,30 +326,37 @@ function signOut(event) {
     xhttp.send();
 }
 
-function connect_websocket(email){
+var webSocket
+
+function connect_websocket(email, token) {
     webSocket = new WebSocket("ws://127.0.0.1:5000/api");
-    alert("ws");
-    webSocket.onopen = function(){
-        webSocket.send(email);
-        alert("open");
+	
+    webSocket.onopen = function(event){
+		var message = JSON.stringify({"login":false, "message":"open!"});
+		webSocket.send(message);
+		console.log('open: ' + event);
+	
+		message = JSON.stringify({"login":true, "message":"Logging in", "token":token, "user":email});
+		webSocket.send(message);
     }
+	
     webSocket.onmessage = function(event) {
-        alert("message");
-        var data = event.data;
-        if(data.message == 'signout') {
-            console.log("signout");
-            webSocket.close();
-        }
+		data = JSON.parse(event.data)
+		console.log(data["message"]);
+		if (data["logout"]) {
+			console.log('signout, same user logged in twice');
+			signOut();
+		}
     }
     webSocket.onclose = function() {
-        console.log("signout2")
-        //signOut();
+        console.log("ws close");
     }
-
-
+	
+	webSocket.onerror = function(event) {
+		console.log('error: ' + event.data);
+	}
 }
-
-// Project
+// Project, drag and drop
 
 function allowDrop(ev){
     ev.preventDefault();
@@ -395,4 +391,18 @@ function drop(ev){
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send(formData);
 */
+}
+
+// Project, hashing parameters
+function hashParametersWithToken(token, user, parameters){
+	var data = ""
+	for(var i = 0; i < parameters.length * 2; i++) {
+		data += parameters[i*2] + "=" + parameters[i*2+1] + "&";
+	}
+	data += "user=" + user + "&";
+	data += token;
+	
+	var hashedResponse = md5(data);
+	hashedResponse += "&user=" + user;
+	return hashedResponse;
 }
