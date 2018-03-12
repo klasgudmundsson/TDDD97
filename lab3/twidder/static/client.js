@@ -321,11 +321,7 @@ function connect_websocket(email, token) {
     webSocket = new WebSocket("ws://127.0.0.1:5000/api");
 	
     webSocket.onopen = function(event){
-		var message = JSON.stringify({"login":false, "message":"open!"});
-		webSocket.send(message);
-		console.log('open: ' + event);
-	
-		message = JSON.stringify({"login":true, "message":"Logging in", "token":token, "user":email});
+		var message = JSON.stringify({"login":true, "message":"Logging in", "token":token, "user":email});
 		webSocket.send(message);
     }
 	
