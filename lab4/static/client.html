@@ -125,9 +125,9 @@
                    <div id = "home-postarea" class="col-xs-12 col-sm-5 col-md-5">
                            <div id="home-posttext"> </div>
                            <textarea id="home-inputpost" class="form-control"required></textarea>
-                                        <button type="submit" value="post" class="btn btn-info col-xs-6 col-sm-5 col-md-3" id="postonwall" onclick="postmessage('home')">Post</button>
+                           <button type="submit" value="post" class="btn btn-info col-xs-6 col-sm-5 col-md-3" id="postonwall" onclick="postmessage('home')">Post</button>
                    </div>
-                                      <button class="btn btn-info col-xs-12 col-sm-5 col-md-1" id="home-reload" onclick="updateWall('home', userEmail)">Reload</button>
+                           <button class="btn btn-info col-xs-12 col-sm-5 col-md-1" id="home-reload" onclick="updateWall('home', userEmail)">Reload</button>
                    <div id="home-postwall" class="col-xs-12 col-sm-5 col-md-5" >
                           <b id="home-header">Wall with posts</b>
                           <div id="home-apost"></div>
@@ -173,12 +173,13 @@
                     <textarea id ="browse-inputpost" class="form-control" ondrop="drop(event)" ondragover="allowDrop(event)" required></textarea>
                     <button type="submit" value="post" class="btn btn-info col-xs-6 col-sm-5 col-md-3" id="browse-postonwall" onclick="postmessage('browse')">Post</button>
                 </div>
+                                                                    <button class="btn btn-info col-xs-12 col-sm-5 col-md-1" id="browse-reload" onclick="updateWall('browse', null)" style="display:none">Reload</button>
                 <div id="browse-postwall" style="display:none" class="col-xs-12 col-sm-5 col-md-5" >
                     <b id="browse-header">Wall with posts</b>
                     <div id="browse-apost"></div>
 
                 </div>
-                                                    <button class="btn btn-info col-xs-12 col-sm-5 col-md-1" id="browse-reload" onclick="updateWall('browse', null)" style="display:none">Reload</button>
+
 
                 <p id="browse-user-message"></p>
             </div>
