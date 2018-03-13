@@ -125,8 +125,8 @@ function loggingin(event) {
         if (xhttp.readyState == 4 && xhttp.status == 200) {
             var result = JSON.parse(xhttp.responseText);
             if(result.success) {
-                //connect_websocket(user);
                 token = result.message;
+				connect_websocket(user, token);
                 var view2 = document.getElementById("profileview").innerHTML;
                 displayView(view2);
                 userInfo(token, user, "home");
@@ -164,7 +164,7 @@ function changepassword(event) {
     var oldPassword = document.getElementById("oldpassword").value;
     var newPassword = document.getElementById("newpassword").value;
     var repeatNewPassword = document.getElementById("repeatnewpassword").value;
-	var signature = hashParametersWithToken(token, user, ["oldpass", oldPassword, "newpass", newPassword]);
+	var signature = hashParametersWithToken(token, userEmail, ["oldpass", oldPassword, "newpass", newPassword]);
     var formdata = 'oldpass=' + oldPassword + '&newpass=' + newPassword + "&"
 	+ 'sign=' + signature;
     if(newPassword === repeatNewPassword) {
@@ -182,7 +182,7 @@ function changepassword(event) {
                         document.getElementById("response1").innerHTML = response.message;
                     }
                 }
-                url = "/changepass/" + token;
+                url = "/changepass/" + md5(token);
                 xhttp.open("POST", url, true);
                 xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
                 xhttp.send(formdata);
@@ -211,8 +211,7 @@ function userInfo(token, email, view) {
         }
     }
 	var signature = hashParametersWithToken(token, email, []);
-	console.log(signature);
-    var url = "/databyemail/" + token + "/" + signature;
+    var url = "/databyemail/" + md5(token) + "/" + signature;
     xhttp.open("GET", url, true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
@@ -229,8 +228,8 @@ function postmessage(view) {
         }
     }
 	var signature = hashParametersWithToken(token, email, ["message", message]);
-    var getdata = 'message=' + message + '&sign=' + signature;
-	var url1 = "/postmessage/" + token + "/" + getdata; //email + "/" + message;
+    var getdata = 'message=' + message + "&" + signature;
+	var url1 = "/postmessage/" + md5(token) + "/" + getdata; //email + "/" + message;
     xhttp1.open("GET", url1, true);
     xhttp1.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp1.send();
@@ -248,8 +247,8 @@ function postmessage(view) {
             updateWall(view, email);
         }
     }
-	sign = hashParametersWithToken(token, user, []);
-    var url2 = "/messagebyemail/" + token + "/" + sign;
+	sign = hashParametersWithToken(token, email, []);
+    var url2 = "/messagebyemail/" + md5(token) + "/" + sign;
     xhttp2.open("GET", url2, true);
     xhttp2.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp2.send();
@@ -274,7 +273,7 @@ function updateWall(view, email) {
         }
     }
 	var signature = hashParametersWithToken(token, email, []);
-    var url = "/messagebyemail/" + token + "/" + signature;
+    var url = "/messagebyemail/" + md5(token) + "/" + signature;
     xhttp.open("GET", url, true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
@@ -287,7 +286,6 @@ function searchforuser() {
     xhttp.onreadystatechange = function () {
         if (xhttp.readyState == 4 && xhttp.status == 200) {
             var response = JSON.parse(xhttp.responseText);
-            console.log(response);
             userInfo(token, email, "browse");
             document.getElementById("browse-reload").style.display = "block";
             var PIdiv = document.getElementById("browse-personalinformation");
@@ -302,7 +300,7 @@ function searchforuser() {
         }
     }
     var signature = hashParametersWithToken(token, email, []);
-    var url = "/messagebyemail/" + token + "/" + signature;
+    var url = "/messagebyemail/" + md5(token) + "/" + signature;
 	xhttp.open("GET", url, true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
@@ -320,7 +318,7 @@ function signOut(event) {
             }
         }
     }
-    var url = "/signout/" + token;
+    var url = "/signout/" + md5(token);
     xhttp.open("POST", url, true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send();
@@ -332,11 +330,7 @@ function connect_websocket(email, token) {
     webSocket = new WebSocket("ws://127.0.0.1:5000/api");
 	
     webSocket.onopen = function(event){
-		var message = JSON.stringify({"login":false, "message":"open!"});
-		webSocket.send(message);
-		console.log('open: ' + event);
-	
-		message = JSON.stringify({"login":true, "message":"Logging in", "token":token, "user":email});
+		var message = JSON.stringify({"login":true, "message":"Logging in", "token":token, "user":email});
 		webSocket.send(message);
     }
 	
@@ -356,6 +350,7 @@ function connect_websocket(email, token) {
 		console.log('error: ' + event.data);
 	}
 }
+
 // Project, drag and drop
 
 function allowDrop(ev){
@@ -402,7 +397,7 @@ function hashParametersWithToken(token, user, parameters){
 	data += "user=" + user + "&";
 	data += token;
 	
-	var hashedResponse = md5(data);
+	var hashedResponse = "sign=" + md5(data);
 	hashedResponse += "&user=" + user;
 	return hashedResponse;
 }

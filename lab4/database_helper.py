@@ -98,6 +98,10 @@ def loggedin_user(token):
      else:
         return False
 
+def get_tokens():
+    tokens = query_db('SELECT token FROM logged_in')
+    return tokens
+
 
 def logout_user(token):
     try:

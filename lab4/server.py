@@ -6,28 +6,35 @@ import uuid
 import database_helper
 import json
 import sys
-import random
 import hashlib
 import re
+import websocket_handler
+
+
+def get_token_by_hashed_token(hashed_string):
+    for e in database_helper.get_tokens():
+        if hashlib.md5(e[0]).hexdigest() == hashed_string:
+            return e[0]
+
 
 def verify_and_get_signvalues(msg, token, args):
     dict = {}
-    m = re.match(r".*sign=(.*)&user", msg)
-    #if args > 2:
-    #    sign = m.group(1)
-    #else:
-    #    sign = 
-    sign = m.group(1)
-    msg_without_sign = re.split(r"&sign=[a-f0-9]{40}&", msg)
+    m = re.match(r".+user=(.+)", msg)
+    user = m.group(1)
+    m1 = re.match(r".*sign=(.*)&user", msg)
+    sign = m1.group(1)
+    msg_without_sign = re.split(r"&sign=[a-f0-9]{32}&", msg)
     msg_without_sign_splitted = re.split(r"&", msg_without_sign[0])
     msg_to_be_hashed = ""
     for e in msg_without_sign_splitted:
         curr_splitted = re.split(r"=", e)
         dict[curr_splitted[0]] = curr_splitted[1]
         msg_to_be_hashed += curr_splitted[0] + "=" + curr_splitted[1] + "&"
-    
-    msg_to_be_hashed += msg_without_sign[1] + "&" + token
-
+    dict['user'] = user
+    if args > 2:
+        msg_to_be_hashed += msg_without_sign[1] + "&" + token
+    else:
+        msg_to_be_hashed += "&" + token
     if sign == hashlib.md5(msg_to_be_hashed).hexdigest():
         dict['verified'] = True
     else:
@@ -61,7 +68,7 @@ def signin():
     if user_exist:
         result = database_helper.correct_password(email, password)
         if result:
-            token = random.randrange(0, 10000, 1)
+            token = str(uuid.uuid4())
             if database_helper.add_loggedin_user(email,token):
 
                 return jsonify({"success": True, "message": token})
@@ -104,25 +111,30 @@ def adduser():
         return jsonify({"success": False, "message": "User already exists"})
 
 
-@app.route('/signout/<token>', methods=['POST'])
-def signout(token):
+@app.route('/signout/<hashed_token>', methods=['POST'])
+def signout(hashed_token):
+    token = get_token_by_hashed_token(hashed_token)
     result = database_helper.loggedin_user(token)  # checks if there is an email logged in
     if result:
+        email = database_helper.get_useremail(token)[0]
+        websocket_handler.manual_logout(email, token)
         database_helper.logout_user(token)
         return jsonify({"success": True, "message": "Successfully signed out."})
     else:
         return jsonify({"success": False, "message": "You are not signed in."})
 
 
-@app.route('/changepass/<token>', methods=['POST'])
-def change_password(token):
-    #old_password = request.form['oldpass']
-    #new_password = request.form['newpass']
-    sign = request.form
-    whole_sign = verify_and_get_signvalues(sign, token, 4)
-    email = whole_sign['user']
-    old_password = whole_sign['oldpass']
-    new_password = whole_sign['newpass']
+@app.route('/changepass/<hashed_token>', methods=['POST'])
+def change_password(hashed_token):
+    token = get_token_by_hashed_token(hashed_token)
+    old_password = request.form['oldpass']
+    new_password = request.form['newpass']
+    sign = request.form['sign']
+    email = request.form['user']
+    sign_tot = "oldpass=" + old_password + "&newpass=" + new_password \
+    + "&" + sign + "&user=" + email
+    
+    whole_sign = verify_and_get_signvalues(sign_tot, token, 4)
     logged_in = database_helper.loggedin_user(token)
     if logged_in and whole_sign['verified']:
         email = database_helper.get_useremail(token)[0]
@@ -139,8 +151,9 @@ def change_password(token):
         return jsonify({"success": False, "message": "You are not logged in."})
 
 
-@app.route('/databytoken/<token>', methods=['GET'])
-def get_user_data_by_token(token):
+@app.route('/databytoken/<hashed_token>', methods=['GET'])
+def get_user_data_by_token(hashed_token):
+    token = get_token_by_hashed_token(hashed_token)
     logged_in = database_helper.loggedin_user(token)
     response = database_helper.get_userdata_by_token(token)
     if logged_in:
@@ -149,8 +162,9 @@ def get_user_data_by_token(token):
         return jsonify({"success": False, "message": "You are not signed in."})
 
 
-@app.route('/databyemail/<token>/<sign>', methods=['GET'])
-def get_user_data_by_email(token, email):
+@app.route('/databyemail/<hashed_token>/<sign>', methods=['GET'])
+def get_user_data_by_email(hashed_token, sign):
+    token = get_token_by_hashed_token(hashed_token)
     logged_in = database_helper.loggedin_user(token)
     if logged_in:
         whole_sign = verify_and_get_signvalues(sign, token, 2)
@@ -164,8 +178,9 @@ def get_user_data_by_email(token, email):
     else:
         return jsonify({"success": False, "message": "You are not signed in."})
 
-@app.route('/postmessage/<token>/<sign>', methods=['GET']) #<email>/<message>'
-def post_message(token, sign):
+@app.route('/postmessage/<hashed_token>/<sign>', methods=['GET']) #<email>/<message>'
+def post_message(hashed_token, sign):
+    token = get_token_by_hashed_token(hashed_token)
     #token = request.form['token']
     #message = request.form['message']
     #email = request.form['email']
@@ -189,8 +204,9 @@ def post_message(token, sign):
     else:
         return jsonify({"success": False, "message": "You are not signed in."})
 
-@app.route('/messagebytoken/<token>', methods=['GET'])
-def get_user_messages_by_token(token):
+@app.route('/messagebytoken/<hashed_token>', methods=['GET'])
+def get_user_messages_by_token(hashed_token):
+    token = get_token_by_hashed_token(hashed_token)
     logged_in = database_helper.loggedin_user(token)
     if logged_in:
         messages = database_helper.get_messages_by_token(token)
@@ -200,8 +216,9 @@ def get_user_messages_by_token(token):
         return jsonify({"success": False, "message": "You are not signed in."})
 
 
-@app.route('/messagebyemail/<token>/<sign>', methods=['GET'])
-def get_user_messages_by_email(token, sign):
+@app.route('/messagebyemail/<hashed_token>/<sign>', methods=['GET'])
+def get_user_messages_by_email(hashed_token, sign):
+    token = get_token_by_hashed_token(hashed_token)
     whole_sign = verify_and_get_signvalues(sign, token, 2)
     email = whole_sign['user']
     user_exists = database_helper.user_exists(email)
@@ -217,40 +234,15 @@ def get_user_messages_by_email(token, sign):
         return jsonify({"success": False, "message": "You are not signed in."})
 
 
-@app.route('/deletemessage/<id>', methods=['GET'])
-def deletemessage(id):
-    #id = request.form['id']
-    if database_helper.message_exists(id):
-        database_helper.delete_message(id)
-        return jsonify({"success": True, "message": "Message deleted."})
-    else:
-        return jsonify({"success": False, "message": "There is no such message."})
-
-
-
-
-
-app.run(debug=True)
+#app.run(debug=True)
 database_helper.init_db(app)
-
 
 @app.route('/api')
 def api():
-    ws = request.environ.get('wsgi.websocket')
-    if ws:
-        print('ws', file=sys.stderr)
-        #ws = request.environ['wsgi.websocket']
-        while True:
-            email = ws.recieve()
-            print(email, file=sys.stderr),
-            if email in current_sockets:
-                current_sockets[email].send("signout")
-
-            current_sockets[email] = ws;
+    if request.environ.get('wsgi.websocket'):
+        websocket_handler.handle_websocket(request.environ['wsgi.websocket'])
 
 
-if __name__ == '__main__':
-    http_server = WSGIServer(("", 5000), app, handler_class=WebSocketHandler)
+if __name__ == '__main__':	
+    http_server = WSGIServer(("127.0.0.1", 5000), app, handler_class=WebSocketHandler)
     http_server.serve_forever()
-
-
